@@ -1,9 +1,11 @@
 """Monopoly API application entry point."""
 
-def main() -> None:
-    """Entry point for the Monopoly API application."""
-    print("Hello from api!")
+from fastapi import FastAPI
+
+app = FastAPI()
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/")
+async def root() -> dict[str, str]:
+    """Return a greeting message from the API root endpoint."""
+    return {"message": "Hello World"}
