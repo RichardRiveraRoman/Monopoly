@@ -1,5 +1,8 @@
 """Title deed model for ownable board spaces."""
 
+from __future__ import annotations
+
+from abc import abstractmethod
 from dataclasses import dataclass
 
 from .space import Space
@@ -13,4 +16,8 @@ class TitleDeed(Space):
     purchase_price: int = 0
     base_rent: int = 0
     mortgage_value: int = 0
-    is_mortaged: bool = False
+    is_mortgaged: bool = False
+
+    @abstractmethod
+    def calculate_rent(self, dice_roll: int, owner_assets: list[TitleDeed]) -> int:
+        """To be overridden by specific property types."""
