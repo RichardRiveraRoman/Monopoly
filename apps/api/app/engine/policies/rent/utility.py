@@ -17,6 +17,14 @@ TOTAL_UTILITIES = 2
 
 @dataclass(frozen=True, slots=True)
 class UtilityRentPolicy:
+    """Rent strategy for utility spaces.
+
+    Unlike properties and railroads, utility rent is *dice-dependent*:
+
+    * **One utility owned** -- rent is ``4 x dice_roll``.
+    * **Both utilities owned (monopoly)** -- rent is ``10 x dice_roll``.
+    """
+
     def calculate(
         self,
         deed: TitleDeed,
@@ -24,6 +32,19 @@ class UtilityRentPolicy:
         dice_roll: int,
         owner_assets: list[TitleDeed],
     ) -> int:
+        """Return the rent owed for landing on a utility.
+
+        Args:
+            deed: The utility's title deed.
+            dice_roll: Sum of the dice -- directly multiplied to
+                determine the final rent.
+            owner_assets: All title deeds owned by the utility's owner.
+
+        Returns:
+            Rent in dollars, or ``0`` if the deed is unowned, mortgaged,
+            or not a ``Utility``.
+
+        """
         if cannot_collect_rent(deed):
             return 0
 

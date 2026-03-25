@@ -15,6 +15,17 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class PropertyRentPolicy:
+    """Rent strategy for colour-group properties.
+
+    Rent escalates through three tiers:
+
+    1. **Houses / hotel** -- if the property has at least one house, the
+       fixed amount from ``deed.house_rents`` is used.
+    2. **Monopoly (no houses)** -- if the owner holds every property in
+       the colour group, base rent is doubled.
+    3. **Base** -- the unimproved rent printed on the deed.
+    """
+
     def calculate(
         self,
         deed: TitleDeed,
@@ -22,7 +33,18 @@ class PropertyRentPolicy:
         dice_roll: int,  # noqa: ARG002
         owner_assets: list[TitleDeed],
     ) -> int:
+        """Return the rent owed for landing on a colour-group property.
 
+        Args:
+            deed: The property's title deed.
+            dice_roll: Ignored -- property rent is not dice-dependent.
+            owner_assets: All title deeds owned by the property's owner.
+
+        Returns:
+            Rent in dollars, or ``0`` if the deed is unowned, mortgaged,
+            or not a ``Property``.
+
+        """
         if cannot_collect_rent(deed):
             return 0
 

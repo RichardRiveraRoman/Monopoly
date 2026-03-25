@@ -17,6 +17,13 @@ TOTAL_RAILROADS = 4
 
 @dataclass(frozen=True, slots=True)
 class RailroadRentPolicy:
+    """Rent strategy for railroad spaces.
+
+    Rent scales with the number of railroads the owner holds, using the
+    tiered amounts stored in ``deed.rent_levels`` = (typically $25 / $50 /
+    $100 / $200 for 1-4 railroads).
+    """
+
     def calculate(
         self,
         deed: TitleDeed,
@@ -24,6 +31,18 @@ class RailroadRentPolicy:
         dice_roll: int,  # noqa: ARG002
         owner_assets: list[TitleDeed],
     ) -> int:
+        """Return the rent owed for landing on a railroad.
+
+        Args:
+            deed: The railroad's title deed.
+            dice_roll: Ignored -- railroad rent is not dice-dependent.
+            owner_assets: All title deeds owned by the railroad's owner.
+
+        Returns:
+            Rent in dollars, or ``0`` if the deed is unowned, mortgaged,
+            or not a ``Railroad``.
+
+        """
         if cannot_collect_rent(deed):
             return 0
 
