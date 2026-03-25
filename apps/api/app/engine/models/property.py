@@ -1,8 +1,14 @@
 """Standard color-group property model."""
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+from app.engine.policies.rent import PropertyRentPolicy
 
 from .title_deed import TitleDeed
+
+if TYPE_CHECKING:
+    from app.engine.policies.rent.base import RentPolicy
 
 
 @dataclass
@@ -14,18 +20,16 @@ class Property(TitleDeed):
     num_houses: int = 0
     house_cost: int = 0
     group_size: int = 0
+    rent_policy: RentPolicy = field(
+        default_factory=PropertyRentPolicy,
+        repr=False,
+        compare=False,
+    )
 
-    def calculate_rent(self, dice_roll: int, owner_assets: list[TitleDeed]) -> int:  # noqa: ARG002
+    def calculate_rent(self, dice_roll: int, owner_assets: list[TitleDeed]) -> int:
         """Return rent owed for this property."""
-        if self.owner_id is None or self.is_mortgaged:
-            return 0
-
-        if self.num_houses > 0:
-            return self.house_rents[self.num_houses - 1]
-
-        same_color_owned = sum(
-            1 for p in owner_assets if isinstance(p, Property) and p.color == self.color
+        return self.rent_policy.calculate(
+            self,
+            dice_roll=dice_roll,
+            owner_assets=owner_assets,
         )
-        has_monopoly = same_color_owned == self.group_size
-
-        return self.base_rent * 2 if has_monopoly else self.base_rent
