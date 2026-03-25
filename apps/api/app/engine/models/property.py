@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from app.engine.policies.rent.base import RentPolicy
 
 
-@dataclass
+@dataclass(slots=True)
 class Property(TitleDeed):
     """Standard color-group property (Ex: Boardwalk)."""
 

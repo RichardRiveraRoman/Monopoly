@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from app.engine.policies.rent.base import RentPolicy
 
 
-@dataclass
+@dataclass(slots=True)
 class Utility(TitleDeed):
     """Utilities (Electric/Water - rent depends on dice roll)."""
 

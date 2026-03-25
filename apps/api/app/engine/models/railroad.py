@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from app.engine.policies.rent.base import RentPolicy
 
 
-@dataclass
+@dataclass(slots=True)
 class Railroad(TitleDeed):
     """Railroad/Stations (rent depends on how many railroads the owner has)."""
 
