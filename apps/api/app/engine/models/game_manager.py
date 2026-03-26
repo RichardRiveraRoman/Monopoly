@@ -24,7 +24,7 @@ class GameManager:
         self.index_of_current_player = 0
         self.game_phase = GamePhase.SETUP
         self.end_game = False
-
+        self.last_dice_roll = 0
         
         
         
@@ -59,7 +59,8 @@ class GameManager:
             
 
     def move_player(self, player: Player) -> str:
-        dice_result = random.randint(1, 6) + random.randint(1, 6)        
+        dice_result = random.randint(1, 6) + random.randint(1, 6)    
+        last_dice_roll = dice_result    
         old_position = player.position
         player.position = (player.position + dice_result) % 40
         #passed go?
@@ -70,27 +71,22 @@ class GameManager:
     
     
     def land_on_space(self, space: Space, player: Player):
-        if space.type == SpaceType.PROPERTY:
+        if space.type == SpaceType.PROPERTY or space.type == SpaceType.STATION  or space.type == SpaceType.UTILITY :
             owner = self._get_owner_of_space(space.id)
             if owner is None:
                 return self._resolve_unowned_property(player, space) #asks UI for player's decision
             elif owner.id == player.id:
                 return None
-            else:
-                #player pays rent
-                self._pay_rent(player, owner, space)
-                return {"type": "rent_paid", "payer_id": player.id, "owner_id": owner.id, "space_id": space.id}
-                
+            if not isinstance(space, TitleDeed):
+                raise TypeError(f"Expected TitleDeed for ownable space, got {type(space).__name__}")
+            
+            owner_assets = self._get_owner_assets(owner)
+            dice_roll = self.last_dice_roll
+            rent = space.calculate_rent(dice_roll, owner_assets)
+            
+            self._pay_rent(player, owner, rent)
+            return {"type": "rent_paid", "payer_id": player.id, "owner_id": owner.id, "space_id": space.id, "rent": rent}
 
-        elif space.type == SpaceType.RAILROAD:
-        # owned?
-        # railroad rent or offer purchase
-            pass
-
-        elif space.type == SpaceType.UTILITY:
-        # owned?
-        # utility rent or offer purchase
-            pass
 
         elif space.type == SpaceType.GO:
             pass
@@ -102,17 +98,42 @@ class GameManager:
             player.cash -= 100
 
         elif space.type == SpaceType.CHANCE:
-            pass
+            return {
+                "type": "draw_chance",
+                "player_id": player.id,
+                "space_id": space.id,
+            }
 
         elif space.type == SpaceType.COMMUNITY_CHEST:
-            pass
+            return {
+                "type": "draw_community_chest",
+                "player_id": player.id,
+                "space_id": space.id,
+            }
 
         elif space.type == SpaceType.GO_TO_JAIL:
             player.position = 10
             player.in_jail = True
+            player.jail_turns = 0
+            return {
+                "type": "sent_to_jail",
+                "player_id": player.id,
+                "space_id": space.id,
+                "jail_position": 10,
+            }
 
         elif space.type == SpaceType.JAIL:
-            pass
+            if player.in_jail:
+                return {
+                    "type": "jail_turn_required",
+                    "player_id": player.id,
+                    "jail_turns": player.jail_turns,
+                }
+            return {
+                "type": "just_visiting",
+                "player_id": player.id,
+                "space_id": space.id,
+            }
 
         elif space.type == SpaceType.FREE_PARKING:
             pass
@@ -124,7 +145,40 @@ class GameManager:
                 return player
         return None
     
-    def _pay_rent()
+    
+    def _get_owner_assets(self, owner: Player) -> list[TitleDeed]:
+        assets: list[TitleDeed] = []
+        for property in owner.property_ids:
+            owned_space = self.board.find_space_by_id(property_id)
+            #Type safety filter
+            if isinstance(owned_space, TitleDeed):
+                assets.append(owned_space)
+        return assets
+        
+        
+    
+    def _pay_rent(self, player: Player, owner: Player, rent: int) -> dict:
+        if rent <= 0:
+            return {"type": "no_rent_due", "payer_id": player.id, "owner_id": owner.id, "rent": 0}
+
+        if player.cash >= rent:
+            player.cash -= rent
+            owner.cash += rent
+            return {"type": "rent_paid", "payer_id": player.id, "owner_id": owner.id, "rent": rent}
+
+        paid = player.cash
+        owner.cash += paid
+        player.cash = 0
+        player.is_bankrupt = True
+        return {
+            "type": "player_bankrupt",
+            "payer_id": player.id,
+            "owner_id": owner.id,
+            "rent_due": rent,
+            "paid": paid,
+            "shortfall": rent - paid,
+        }
+            
     
     
     #Step 1 (land_on_space): “Player must choose buy or auction.”
@@ -150,9 +204,3 @@ class GameManager:
       
     
     
-    
-class GamePhase(StrEnum):
-    SETUP = "setup"
-    MOVING = "moving"
-    LANDING = "landing"
-    ENDED = "ended"
