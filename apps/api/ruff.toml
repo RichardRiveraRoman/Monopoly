@@ -1,5 +1,6 @@
 target-version = "py314"
 select = ["ALL"]
+per-file-ignores = { "tests/**/*.py" = ["S101"] }
 
 [format]
 docstring-code-format = true
