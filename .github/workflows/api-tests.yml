@@ -33,7 +33,9 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
+        working-directory: apps/api
         run: pip install fastapi[standard] pytest
 
       - name: Run tests
-        run: pytest apps/api/tests -q
+        working-directory: apps/api
+        run: pytest tests -q
