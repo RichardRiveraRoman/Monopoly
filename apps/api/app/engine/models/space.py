@@ -27,7 +27,7 @@ class SpaceType(StrEnum):
     SPECIAL = "Special"  # GO, Tax, Income Tax
 
 
-@dataclass
+@dataclass(slots=True)
 class Space:
     """Represents a space in the Monopoly game."""
 

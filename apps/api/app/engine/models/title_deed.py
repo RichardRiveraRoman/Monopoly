@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from .space import Space
 
 
-@dataclass
+@dataclass(slots=True)
 class TitleDeed(Space):
     """A Space that can be owned, bought, and rented."""
 

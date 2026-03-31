@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from .space import Space
 
 
-@dataclass
+@dataclass(slots=True)
 class Board:
     """Represents the Monopoly game board."""
 
