@@ -1,5 +1,7 @@
+"""Game flow manager for turn order, movement, and space outcomes."""
+
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 
 from .board import Board
@@ -10,6 +12,8 @@ from .title_deed import TitleDeed
 
 
 class GamePhase(StrEnum):
+    """Lifecycle phases for a Monopoly game session."""
+
     SETUP = "setup"
     PLAYING = "playing"
     ENDED = "ended"
@@ -17,6 +21,11 @@ class GamePhase(StrEnum):
 
 @dataclass
 class GameManager:
+    """Coordinate game state transitions and player actions."""
+
+    MIN_PLAYERS = 2
+    MAX_PLAYERS = 8
+
     board: Board
     players: list[Player]
     index_of_current_player: int = 0
@@ -25,25 +34,31 @@ class GameManager:
     last_dice_roll: int = 0
 
     @classmethod
-    def create_game(cls, player_names: list[str]) -> "GameManager":
+    def create_game(cls, player_names: list[str]) -> GameManager:
+        """Create a new game manager with a standard board and players."""
         spaces = get_board_spaces()
         board = Board(spaces, "Monopoly")
         players = [Player(id=str(i), name=name) for i, name in enumerate(player_names)]
         return cls(board, players)
 
     def start_game(self) -> dict | None:
+        """Validate setup requirements, randomize order, and begin play."""
         if self.game_phase != GamePhase.SETUP:
-            raise ValueError("Game has already started or ended.")
-        if not (2 <= len(self.players) <= 8):
-            raise ValueError("Game needs between 2 and 8 players.")
+            error_message = "Game has already started or ended."
+            raise ValueError(error_message)
+        if not (self.MIN_PLAYERS <= len(self.players) <= self.MAX_PLAYERS):
+            error_message = "Game needs between 2 and 8 players."
+            raise ValueError(error_message)
 
         random.shuffle(self.players)
         self.game_phase = GamePhase.PLAYING
         return self.new_turn()
 
     def new_turn(self) -> dict | None:
+        """Advance one turn for the current player and return the outcome."""
         if self.game_phase != GamePhase.PLAYING:
-            raise ValueError("Cannot play a turn when game is not in PLAYING phase.")
+            error_message = "Cannot play a turn when game is not in PLAYING phase."
+            raise ValueError(error_message)
 
         curr_player = self.players[self.index_of_current_player]
         space = self.move_player(curr_player)
@@ -51,108 +66,136 @@ class GameManager:
         self.check_win()
 
         self.index_of_current_player = (self.index_of_current_player + 1) % len(
-            self.players
+            self.players,
         )
 
         return result
 
     def move_player(self, player: Player) -> Space:
-        dice_result = random.randint(1, 6) + random.randint(1, 6)
+        """Roll dice, move a player, and return the destination space."""
+        dice_result = random.randint(1, 6) + random.randint(
+            1, 6
+        )  # noqa: S311 - non-cryptographic game RNG is intentional
         self.last_dice_roll = dice_result
         old_position = player.position
         player.position = (player.position + dice_result) % 40
         if player.position < old_position:
             player.cash += 200
-        space = self.board.get_space_at(player.position)
-        return space
+        return self.board.get_space_at(player.position)
 
     def land_on_space(self, space: Space, player: Player) -> dict | None:
+        """Resolve effects when a player lands on a specific board space."""
         if space.type in (SpaceType.PROPERTY, SpaceType.STATION, SpaceType.UTILITY):
-            owner = self._get_owner_of_space(space.id)
-            if owner is None:
-                if not isinstance(space, TitleDeed):
-                    raise TypeError(
-                        f"Expected TitleDeed for ownable space, got {type(space).__name__}"
-                    )
-                return self._resolve_unowned_property(player, space)
+            return self._handle_ownable_space(space, player)
 
-            if owner.id == player.id:
-                return None
-
-            if not isinstance(space, TitleDeed):
-                raise TypeError(
-                    f"Expected TitleDeed for ownable space, got {type(space).__name__}"
-                )
-
-            owner_assets = self._get_owner_assets(owner)
-            rent = space.calculate_rent(self.last_dice_roll, owner_assets)
-            rent_result = self._pay_rent(player, owner, rent)
-            rent_result["space_id"] = space.id
-            return rent_result
-
-        if space.id == "go":
+        if space.id in {"go", "free_parking"}:
             return None
 
+        result: dict | None
         if space.id == "income_tax":
-            player.cash -= 200
-            return {
-                "type": "income_tax_paid",
-                "player_id": player.id,
-                "space_id": space.id,
-                "amount": 200,
-            }
+            result = self._handle_tax(
+                space,
+                player,
+                amount=200,
+                tax_type="income_tax_paid",
+            )
+        elif space.id == "luxury_tax":
+            result = self._handle_tax(
+                space,
+                player,
+                amount=100,
+                tax_type="luxury_tax_paid",
+            )
+        elif space.id.startswith("chance"):
+            result = self._handle_draw_card(
+                space,
+                player,
+                card_type="draw_chance",
+            )
+        elif space.id.startswith("community_chest"):
+            result = self._handle_draw_card(
+                space,
+                player,
+                card_type="draw_community_chest",
+            )
+        elif space.id == "go_to_jail":
+            result = self._handle_go_to_jail(space, player)
+        elif space.id == "jail":
+            result = self._handle_jail(space, player)
+        else:
+            result = None
 
-        if space.id == "luxury_tax":
-            player.cash -= 100
-            return {
-                "type": "luxury_tax_paid",
-                "player_id": player.id,
-                "space_id": space.id,
-                "amount": 100,
-            }
+        return result
 
-        if space.id.startswith("chance"):
-            return {
-                "type": "draw_chance",
-                "player_id": player.id,
-                "space_id": space.id,
-            }
+    def _handle_ownable_space(self, space: Space, player: Player) -> dict | None:
+        owner = self._get_owner_of_space(space.id)
+        title_deed = self._as_title_deed(space)
 
-        if space.id.startswith("community_chest"):
-            return {
-                "type": "draw_community_chest",
-                "player_id": player.id,
-                "space_id": space.id,
-            }
+        if owner is None:
+            return self._resolve_unowned_property(player, title_deed)
 
-        if space.id == "go_to_jail":
-            player.position = 10
-            player.in_jail = True
-            player.jail_turns = 0
-            return {
-                "type": "sent_to_jail",
-                "player_id": player.id,
-                "space_id": space.id,
-                "jail_position": 10,
-            }
-
-        if space.id == "jail":
-            if player.in_jail:
-                return {
-                    "type": "jail_turn_required",
-                    "player_id": player.id,
-                    "jail_turns": player.jail_turns,
-                }
-            return {
-                "type": "just_visiting",
-                "player_id": player.id,
-                "space_id": space.id,
-            }
-
-        if space.id == "free_parking":
+        if owner.id == player.id:
             return None
 
-        return None
+        owner_assets = self._get_owner_assets(owner)
+        rent = title_deed.calculate_rent(self.last_dice_roll, owner_assets)
+        rent_result = self._pay_rent(player, owner, rent)
+        rent_result["space_id"] = title_deed.id
+        return rent_result
+
+    def _as_title_deed(self, space: Space) -> TitleDeed:
+        if not isinstance(space, TitleDeed):
+            error_message = (
+                "Expected TitleDeed for ownable space, got " f"{type(space).__name__}"
+            )
+            raise TypeError(error_message)
+        return space
+
+    def _handle_tax(
+        self,
+        space: Space,
+        player: Player,
+        amount: int,
+        tax_type: str,
+    ) -> dict:
+        player.cash -= amount
+        return {
+            "type": tax_type,
+            "player_id": player.id,
+            "space_id": space.id,
+            "amount": amount,
+        }
+
+    def _handle_draw_card(self, space: Space, player: Player, card_type: str) -> dict:
+        return {
+            "type": card_type,
+            "player_id": player.id,
+            "space_id": space.id,
+        }
+
+    def _handle_go_to_jail(self, space: Space, player: Player) -> dict:
+        player.position = 10
+        player.in_jail = True
+        player.jail_turns = 0
+        return {
+            "type": "sent_to_jail",
+            "player_id": player.id,
+            "space_id": space.id,
+            "jail_position": 10,
+        }
+
+    def _handle_jail(self, space: Space, player: Player) -> dict:
+        if player.in_jail:
+            return {
+                "type": "jail_turn_required",
+                "player_id": player.id,
+                "jail_turns": player.jail_turns,
+            }
+        return {
+            "type": "just_visiting",
+            "player_id": player.id,
+            "space_id": space.id,
+        }
 
     def _get_owner_of_space(self, space_id: str) -> Player | None:
         for player in self.players:
@@ -209,11 +252,13 @@ class GameManager:
         }
 
     def handle_action(self, action_type: str, player_id: str, space_id: str) -> dict:
+        """Apply a follow-up action like buying or declining a property."""
         player = self._get_player_by_id(player_id)
         space = self._get_ownable_space(space_id)
 
         if self._get_owner_of_space(space_id) is not None:
-            raise ValueError("Property already owned.")
+            error_message = "Property already owned."
+            raise ValueError(error_message)
 
         if action_type == "BUY_PROPERTY":
             if player.cash < space.purchase_price:
@@ -242,9 +287,11 @@ class GameManager:
                 "starting_price": 1,
             }
 
-        raise ValueError(f"Unknown action type: {action_type}")
+        error_message = f"Unknown action type: {action_type}"
+        raise ValueError(error_message)
 
     def check_win(self) -> Player | None:
+        """Return the winner when one active player remains, otherwise None."""
         active_players = [player for player in self.players if not player.is_bankrupt]
         if len(active_players) == 1:
             self.game_phase = GamePhase.ENDED
@@ -256,10 +303,12 @@ class GameManager:
         for player in self.players:
             if player.id == player_id:
                 return player
-        raise ValueError(f"Player not found: {player_id}")
+        error_message = f"Player not found: {player_id}"
+        raise ValueError(error_message)
 
     def _get_ownable_space(self, space_id: str) -> TitleDeed:
         space = self.board.find_space_by_id(space_id)
         if not isinstance(space, TitleDeed):
-            raise ValueError(f"Space is not ownable: {space_id}")
+            error_message = f"Space is not ownable: {space_id}"
+            raise TypeError(error_message)
         return space

@@ -10,7 +10,6 @@ def get_board_spaces() -> list[Space]:
     return [
         # Corner 1: GO
         Space(id="go", name="GO", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
-        
         # Brown properties
         Property(
             id="med_ave",
@@ -23,7 +22,12 @@ def get_board_spaces() -> list[Space]:
             house_rents=[10, 30, 90, 160, 250],
             mortgage_value=30,
         ),
-        Space(id="community_chest_1", name="Community Chest", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
+        Space(
+            id="community_chest_1",
+            name="Community Chest",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
+        ),
         Property(
             id="baltic_ave",
             name="Baltic Avenue",
@@ -35,8 +39,12 @@ def get_board_spaces() -> list[Space]:
             house_rents=[10, 30, 90, 160, 250],
             mortgage_value=20,
         ),
-        Space(id="income_tax", name="Income Tax", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
-        
+        Space(
+            id="income_tax",
+            name="Income Tax",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
+        ),
         # Station 1
         TitleDeed(
             id="reading_rr",
@@ -47,7 +55,6 @@ def get_board_spaces() -> list[Space]:
             base_rent=25,
             mortgage_value=100,
         ),
-        
         # Light Blue properties
         Property(
             id="oriental_ave",
@@ -60,7 +67,9 @@ def get_board_spaces() -> list[Space]:
             house_rents=[30, 90, 270, 400, 550],
             mortgage_value=50,
         ),
-        Space(id="chance_1", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
+        Space(
+            id="chance_1", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL,
+        ),
         Property(
             id="vermont_ave",
             name="Vermont Avenue",
@@ -83,10 +92,8 @@ def get_board_spaces() -> list[Space]:
             house_rents=[40, 120, 360, 500, 600],
             mortgage_value=60,
         ),
-        
         # Corner 2: Jail
         Space(id="jail", name="Jail", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
-        
         # Pink properties
         Property(
             id="st_charles",
@@ -99,7 +106,6 @@ def get_board_spaces() -> list[Space]:
             house_rents=[30, 90, 270, 400, 550],
             mortgage_value=70,
         ),
-        
         # Utility 1
         TitleDeed(
             id="electric_company",
@@ -110,7 +116,6 @@ def get_board_spaces() -> list[Space]:
             base_rent=12,
             mortgage_value=75,
         ),
-        
         Property(
             id="states_ave",
             name="States Avenue",
@@ -133,7 +138,6 @@ def get_board_spaces() -> list[Space]:
             house_rents=[40, 120, 360, 500, 600],
             mortgage_value=80,
         ),
-        
         # Station 2
         TitleDeed(
             id="pennsylvania_rr",
@@ -144,7 +148,6 @@ def get_board_spaces() -> list[Space]:
             base_rent=25,
             mortgage_value=100,
         ),
-        
         # Orange properties
         Property(
             id="st_james",
@@ -157,7 +160,12 @@ def get_board_spaces() -> list[Space]:
             house_rents=[50, 150, 450, 625, 750],
             mortgage_value=90,
         ),
-        Space(id="community_chest_2", name="Community Chest", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
+        Space(
+            id="community_chest_2",
+            name="Community Chest",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
+        ),
         Property(
             id="tennessee_ave",
             name="Tennessee Avenue",
@@ -180,10 +188,13 @@ def get_board_spaces() -> list[Space]:
             house_rents=[60, 180, 500, 700, 900],
             mortgage_value=100,
         ),
-        
         # Corner 3: Free Parking
-        Space(id="free_parking", name="Free Parking", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
-        
+        Space(
+            id="free_parking",
+            name="Free Parking",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
+        ),
         # Red properties
         Property(
             id="kentucky_ave",
@@ -196,7 +207,9 @@ def get_board_spaces() -> list[Space]:
             house_rents=[70, 200, 550, 750, 950],
             mortgage_value=110,
         ),
-        Space(id="chance_2", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
+        Space(
+            id="chance_2", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL,
+        ),
         Property(
             id="indiana_ave",
             name="Indiana Avenue",
@@ -219,7 +232,6 @@ def get_board_spaces() -> list[Space]:
             house_rents=[80, 220, 600, 800, 1000],
             mortgage_value=120,
         ),
-        
         # Station 3
         TitleDeed(
             id="bo_railroad",
@@ -230,7 +242,6 @@ def get_board_spaces() -> list[Space]:
             base_rent=25,
             mortgage_value=100,
         ),
-        
         # Yellow properties
         Property(
             id="atlantic_ave",
@@ -254,7 +265,6 @@ def get_board_spaces() -> list[Space]:
             house_rents=[90, 250, 700, 875, 1050],
             mortgage_value=130,
         ),
-        
         # Utility 2
         TitleDeed(
             id="water_works",
@@ -265,7 +275,6 @@ def get_board_spaces() -> list[Space]:
             base_rent=12,
             mortgage_value=75,
         ),
-        
         Property(
             id="marvin_gardens",
             name="Marvin Gardens",
@@ -277,10 +286,13 @@ def get_board_spaces() -> list[Space]:
             house_rents=[100, 300, 750, 925, 1100],
             mortgage_value=140,
         ),
-        
         # Corner 4: Go to Jail
-        Space(id="go_to_jail", name="Go to Jail", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
-        
+        Space(
+            id="go_to_jail",
+            name="Go to Jail",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
+        ),
         # Green properties
         Property(
             id="pacific_ave",
@@ -304,7 +316,12 @@ def get_board_spaces() -> list[Space]:
             house_rents=[110, 330, 800, 975, 1150],
             mortgage_value=150,
         ),
-        Space(id="community_chest_3", name="Community Chest", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
+        Space(
+            id="community_chest_3",
+            name="Community Chest",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
+        ),
         Property(
             id="pennsylvania_ave",
             name="Pennsylvania Avenue",
@@ -316,7 +333,6 @@ def get_board_spaces() -> list[Space]:
             house_rents=[120, 360, 850, 1025, 1200],
             mortgage_value=160,
         ),
-        
         # Station 4
         TitleDeed(
             id="short_line",
@@ -327,9 +343,9 @@ def get_board_spaces() -> list[Space]:
             base_rent=25,
             mortgage_value=100,
         ),
-        
-        Space(id="chance_3", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
-        
+        Space(
+            id="chance_3", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL,
+        ),
         # Dark Blue properties
         Property(
             id="park_place",
@@ -342,7 +358,12 @@ def get_board_spaces() -> list[Space]:
             house_rents=[150, 450, 1000, 1200, 1400],
             mortgage_value=175,
         ),
-        Space(id="luxury_tax", name="Luxury Tax", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
+        Space(
+            id="luxury_tax",
+            name="Luxury Tax",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
+        ),
         Property(
             id="boardwalk",
             name="Boardwalk",
