@@ -6,10 +6,10 @@ repos:
           - pre-push
     repo: https://github.com/commitizen-tools/commitizen
     rev: v4.13.9
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.8
-    hooks:
-      - id: ruff-check
-        args: [--fix]
+  - hooks:
+      - args:
+          - --fix
+        id: ruff-check
       - id: ruff-format
+    repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.8
