@@ -38,4 +38,6 @@ jobs:
 
       - name: Run tests
         working-directory: apps/api
+        env:
+          PYTHONPATH: .
         run: pytest tests -q
