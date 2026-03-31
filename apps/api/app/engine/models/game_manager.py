@@ -73,9 +73,9 @@ class GameManager:
 
     def move_player(self, player: Player) -> Space:
         """Roll dice, move a player, and return the destination space."""
-        dice_result = random.randint(1, 6) + random.randint(
-            1, 6
-        )  # noqa: S311 - non-cryptographic game RNG is intentional
+        first_die = random.randint(1, 6)  # noqa: S311 - non-cryptographic game RNG is intentional
+        second_die = random.randint(1, 6)  # noqa: S311 - non-cryptographic game RNG is intentional
+        dice_result = first_die + second_die
         self.last_dice_roll = dice_result
         old_position = player.position
         player.position = (player.position + dice_result) % 40
@@ -146,7 +146,8 @@ class GameManager:
     def _as_title_deed(self, space: Space) -> TitleDeed:
         if not isinstance(space, TitleDeed):
             error_message = (
-                "Expected TitleDeed for ownable space, got " f"{type(space).__name__}"
+                "Expected TitleDeed for ownable space, got "
+                f"{type(space).__name__}"
             )
             raise TypeError(error_message)
         return space
