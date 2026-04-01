@@ -68,7 +68,10 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=50,
         ),
         Space(
-            id="chance_1", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL,
+            id="chance_1",
+            name="Chance",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
         ),
         Property(
             id="vermont_ave",
@@ -208,7 +211,10 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=110,
         ),
         Space(
-            id="chance_2", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL,
+            id="chance_2",
+            name="Chance",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
         ),
         Property(
             id="indiana_ave",
@@ -344,7 +350,10 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=100,
         ),
         Space(
-            id="chance_3", name="Chance", color=SpaceColor.NONE, type=SpaceType.SPECIAL,
+            id="chance_3",
+            name="Chance",
+            color=SpaceColor.NONE,
+            type=SpaceType.SPECIAL,
         ),
         # Dark Blue properties
         Property(

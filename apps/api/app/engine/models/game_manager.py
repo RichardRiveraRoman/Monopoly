@@ -146,8 +146,7 @@ class GameManager:
     def _as_title_deed(self, space: Space) -> TitleDeed:
         if not isinstance(space, TitleDeed):
             error_message = (
-                "Expected TitleDeed for ownable space, got "
-                f"{type(space).__name__}"
+                f"Expected TitleDeed for ownable space, got {type(space).__name__}"
             )
             raise TypeError(error_message)
         return space
