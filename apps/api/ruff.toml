@@ -1,11 +1,5 @@
 target-version = "py314"
-
-[lint]
 select = ["ALL"]
-ignore = ["COM812", "D203", "D213"]
-per-file-ignores = {
-	"tests/**/*.py" = ["S101"],
-}
 
 [format]
 docstring-code-format = true
