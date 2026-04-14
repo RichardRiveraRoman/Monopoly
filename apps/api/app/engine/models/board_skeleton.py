@@ -1,13 +1,25 @@
 """Pre-built board layout for standard US Monopoly."""
 
 from .property import Property
+from .railroad import Railroad
 from .space import Space, SpaceColor, SpaceType
-from .title_deed import TitleDeed
+from .utility import Utility
+
+PROPERTY_GROUP_SIZES = {
+    SpaceColor.BROWN: 2,
+    SpaceColor.LIGHT_BLUE: 3,
+    SpaceColor.PINK: 3,
+    SpaceColor.ORANGE: 3,
+    SpaceColor.RED: 3,
+    SpaceColor.YELLOW: 3,
+    SpaceColor.GREEN: 3,
+    SpaceColor.DARK_BLUE: 2,
+}
 
 
 def get_board_spaces() -> list[Space]:
     """Return list of 40 spaces in order around the board."""
-    return [
+    spaces = [
         # Corner 1: GO
         Space(id="go", name="GO", color=SpaceColor.NONE, type=SpaceType.SPECIAL),
         # Brown properties
@@ -46,7 +58,7 @@ def get_board_spaces() -> list[Space]:
             type=SpaceType.SPECIAL,
         ),
         # Station 1
-        TitleDeed(
+        Railroad(
             id="reading_rr",
             name="Reading Railroad",
             color=SpaceColor.NONE,
@@ -110,7 +122,7 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=70,
         ),
         # Utility 1
-        TitleDeed(
+        Utility(
             id="electric_company",
             name="Electric Company",
             color=SpaceColor.NONE,
@@ -142,7 +154,7 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=80,
         ),
         # Station 2
-        TitleDeed(
+        Railroad(
             id="pennsylvania_rr",
             name="Pennsylvania Railroad",
             color=SpaceColor.NONE,
@@ -239,7 +251,7 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=120,
         ),
         # Station 3
-        TitleDeed(
+        Railroad(
             id="bo_railroad",
             name="B&O Railroad",
             color=SpaceColor.NONE,
@@ -272,7 +284,7 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=130,
         ),
         # Utility 2
-        TitleDeed(
+        Utility(
             id="water_works",
             name="Water Works",
             color=SpaceColor.NONE,
@@ -340,7 +352,7 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=160,
         ),
         # Station 4
-        TitleDeed(
+        Railroad(
             id="short_line",
             name="Short Line",
             color=SpaceColor.NONE,
@@ -385,3 +397,9 @@ def get_board_spaces() -> list[Space]:
             mortgage_value=200,
         ),
     ]
+
+    for space in spaces:
+        if isinstance(space, Property):
+            space.group_size = PROPERTY_GROUP_SIZES[space.color]
+
+    return spaces
