@@ -5,12 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from app.engine.models import Utility
-
 from .base import cannot_collect_rent
 
 if TYPE_CHECKING:
-    from app.engine.models import TitleDeed
+    from app.engine.models.title_deed import TitleDeed
 
 TOTAL_UTILITIES = 2
 
@@ -48,10 +46,12 @@ class UtilityRentPolicy:
         if cannot_collect_rent(deed):
             return 0
 
-        if not isinstance(deed, Utility):
+        if deed.__class__.__name__ != "Utility":
             return 0
 
-        utilities_owned = sum(1 for asset in owner_assets if isinstance(asset, Utility))
+        utilities_owned = sum(
+            1 for asset in owner_assets if asset.__class__.__name__ == "Utility"
+        )
         if utilities_owned == 0:
             return 0
 

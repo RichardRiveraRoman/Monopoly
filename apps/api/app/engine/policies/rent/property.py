@@ -5,12 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from app.engine.models import Property
-
 from .base import cannot_collect_rent
 
 if TYPE_CHECKING:
-    from app.engine.models import TitleDeed
+    from app.engine.models.title_deed import TitleDeed
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,7 +46,7 @@ class PropertyRentPolicy:
         if cannot_collect_rent(deed):
             return 0
 
-        if not isinstance(deed, Property):
+        if deed.__class__.__name__ != "Property":
             return 0
 
         if deed.num_houses > 0:
@@ -57,7 +55,7 @@ class PropertyRentPolicy:
         same_color_owned = sum(
             1
             for asset in owner_assets
-            if isinstance(asset, Property) and asset.color == deed.color
+            if asset.__class__.__name__ == "Property" and asset.color == deed.color
         )
 
         has_monopoly = same_color_owned == deed.group_size

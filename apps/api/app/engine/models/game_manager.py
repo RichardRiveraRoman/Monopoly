@@ -4,6 +4,9 @@ import random
 from dataclasses import dataclass
 from enum import StrEnum
 
+from app.engine.rules import buy_property, decline_property, resolve_unowned_landing
+from app.engine.services import collect_owner_assets, find_owner, transfer_rent
+
 from .board import Board
 from .board_skeleton import get_board_spaces
 from .player import Player
@@ -73,8 +76,12 @@ class GameManager:
 
     def move_player(self, player: Player) -> Space:
         """Roll dice, move a player, and return the destination space."""
-        first_die = random.randint(1, 6)  # noqa: S311 - non-cryptographic game RNG is intentional
-        second_die = random.randint(1, 6)  # noqa: S311 - non-cryptographic game RNG is intentional
+        first_die = random.randint(
+            1, 6
+        )  # noqa: S311 - non-cryptographic game RNG is intentional
+        second_die = random.randint(
+            1, 6
+        )  # noqa: S311 - non-cryptographic game RNG is intentional
         dice_result = first_die + second_die
         self.last_dice_roll = dice_result
         old_position = player.position
@@ -128,18 +135,18 @@ class GameManager:
         return result
 
     def _handle_ownable_space(self, space: Space, player: Player) -> dict | None:
-        owner = self._get_owner_of_space(space.id)
+        owner = find_owner(self.players, space.id)
         title_deed = self._as_title_deed(space)
 
         if owner is None:
-            return self._resolve_unowned_property(player, title_deed)
+            return resolve_unowned_landing(player, title_deed)
 
         if owner.id == player.id:
             return None
 
-        owner_assets = self._get_owner_assets(owner)
+        owner_assets = collect_owner_assets(self.board, owner)
         rent = title_deed.calculate_rent(self.last_dice_roll, owner_assets)
-        rent_result = self._pay_rent(player, owner, rent)
+        rent_result = transfer_rent(player, owner, rent)
         rent_result["space_id"] = title_deed.id
         return rent_result
 
@@ -197,95 +204,20 @@ class GameManager:
             "space_id": space.id,
         }
 
-    def _get_owner_of_space(self, space_id: str) -> Player | None:
-        for player in self.players:
-            if space_id in player.property_ids:
-                return player
-        return None
-
-    def _get_owner_assets(self, owner: Player) -> list[TitleDeed]:
-        assets: list[TitleDeed] = []
-        for property_id in owner.property_ids:
-            owned_space = self.board.find_space_by_id(property_id)
-            if isinstance(owned_space, TitleDeed):
-                assets.append(owned_space)
-        return assets
-
-    def _pay_rent(self, player: Player, owner: Player, rent: int) -> dict:
-        if rent <= 0:
-            return {
-                "type": "no_rent_due",
-                "payer_id": player.id,
-                "owner_id": owner.id,
-                "rent": 0,
-            }
-
-        if player.cash >= rent:
-            player.cash -= rent
-            owner.cash += rent
-            return {
-                "type": "rent_paid",
-                "payer_id": player.id,
-                "owner_id": owner.id,
-                "rent": rent,
-            }
-
-        paid = player.cash
-        owner.cash += paid
-        player.cash = 0
-        player.is_bankrupt = True
-        return {
-            "type": "player_bankrupt",
-            "payer_id": player.id,
-            "owner_id": owner.id,
-            "rent_due": rent,
-            "paid": paid,
-            "shortfall": rent - paid,
-        }
-
-    def _resolve_unowned_property(self, player: Player, space: TitleDeed) -> dict:
-        return {
-            "type": "buy_or_auction",
-            "player_id": player.id,
-            "space_id": space.id,
-            "price": space.purchase_price,
-        }
-
     def handle_action(self, action_type: str, player_id: str, space_id: str) -> dict:
         """Apply a follow-up action like buying or declining a property."""
         player = self._get_player_by_id(player_id)
         space = self._get_ownable_space(space_id)
 
-        if self._get_owner_of_space(space_id) is not None:
+        if find_owner(self.players, space_id) is not None:
             error_message = "Property already owned."
             raise ValueError(error_message)
 
         if action_type == "BUY_PROPERTY":
-            if player.cash < space.purchase_price:
-                return {
-                    "type": "insufficient_funds",
-                    "player_id": player.id,
-                    "space_id": space.id,
-                    "required": space.purchase_price,
-                    "cash": player.cash,
-                }
-            player.cash -= space.purchase_price
-            player.property_ids.append(space.id)
-            space.owner_id = player.id
-            return {
-                "type": "property_bought",
-                "player_id": player.id,
-                "space_id": space.id,
-                "price": space.purchase_price,
-            }
+            return buy_property(player, space)
 
         if action_type == "DECLINE_PROPERTY":
-            return {
-                "type": "start_auction",
-                "player_id": player.id,
-                "space_id": space.id,
-                "starting_price": 1,
-            }
+            return decline_property(player, space)
 
         error_message = f"Unknown action type: {action_type}"
         raise ValueError(error_message)

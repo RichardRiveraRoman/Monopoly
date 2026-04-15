@@ -5,12 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from app.engine.models import Railroad
-
 from .base import cannot_collect_rent
 
 if TYPE_CHECKING:
-    from app.engine.models import TitleDeed
+    from app.engine.models.title_deed import TitleDeed
 
 TOTAL_RAILROADS = 4
 
@@ -46,11 +44,11 @@ class RailroadRentPolicy:
         if cannot_collect_rent(deed):
             return 0
 
-        if not isinstance(deed, Railroad):
+        if deed.__class__.__name__ != "Railroad":
             return 0
 
         railroads_owned = sum(
-            1 for asset in owner_assets if isinstance(asset, Railroad)
+            1 for asset in owner_assets if asset.__class__.__name__ == "Railroad"
         )
 
         rent_level = min(

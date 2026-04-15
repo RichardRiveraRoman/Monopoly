@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from app.engine.models import TitleDeed
+    from app.engine.models.title_deed import TitleDeed
 
 
 class RentPolicy(Protocol):

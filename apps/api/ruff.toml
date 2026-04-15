@@ -1,5 +1,10 @@
 target-version = "py314"
+
+[lint]
 select = ["ALL"]
+
+[lint.per-file-ignores]
+"tests/*.py" = ["S101", "PLR2004"]
 
 [format]
 docstring-code-format = true
